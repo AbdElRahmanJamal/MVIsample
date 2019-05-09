@@ -66,11 +66,8 @@ class PlayerViewWithEditText : Fragment() {
             is PlayerViewState.InitviewState -> {
                 handleOnStartAppState(state)
             }
-            is PlayerViewState.enableGuessButton -> {
-                get_player_btn.isEnabled = true
-            }
-            is PlayerViewState.disapleGuessButton -> {
-                get_player_btn.isEnabled = false
+            is PlayerViewState.invalidateGuessButton -> {
+                get_player_btn.isEnabled = state.isEnable
             }
         }
     }

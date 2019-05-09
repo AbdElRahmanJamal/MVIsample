@@ -8,6 +8,5 @@ sealed class PlayerViewState {
     object LoadingState : PlayerViewState()
     data class ErrorState(val throwable: Throwable) : PlayerViewState()
     data class SuccessState(val playerInfo: PlayerInfo) : PlayerViewState()
-    object enableGuessButton : PlayerViewState()
-    object disapleGuessButton : PlayerViewState()
+    data class invalidateGuessButton(val isEnable: Boolean) : PlayerViewState()
 }
