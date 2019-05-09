@@ -1,4 +1,4 @@
-package com.di.mvisample.playerview
+package com.di.mvisample.UI.playerview
 
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
@@ -11,13 +11,13 @@ import com.di.mvisample.data.mvi.PlayerViewState
 import com.di.mvisample.data.mvi.PlayerViewsIntent
 import com.jakewharton.rxbinding2.view.RxView
 import io.reactivex.Observable
-import io.reactivex.disposables.Disposable
+import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.player_view.*
 
 class PlayerView : Fragment() {
 
     private lateinit var viewModel: PlayerViewViewModel
-    private lateinit var dispose: Disposable
+    private val disposables = CompositeDisposable()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -29,9 +29,10 @@ class PlayerView : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(PlayerViewViewModel::class.java)
         viewModel.bind(getPlayerViewsIntents())
-        dispose = viewModel.getPlayerViewState().subscribe {
+        val dispose = viewModel.getPlayerViewState().subscribe {
             renderViewState(it)
         }
+        disposables.add(dispose)
     }
 
     fun getPlayerViewsIntents(): Observable<PlayerViewsIntent> =
@@ -90,7 +91,7 @@ class PlayerView : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        if (!dispose.isDisposed)
-            dispose.dispose()
+        if (!disposables.isDisposed)
+            disposables.dispose()
     }
 }

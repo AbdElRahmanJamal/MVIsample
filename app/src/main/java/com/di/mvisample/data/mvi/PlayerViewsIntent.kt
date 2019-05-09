@@ -4,4 +4,6 @@ sealed class PlayerViewsIntent {
 
     object InitViewsIntent : PlayerViewsIntent()
     object OnGetPlayerViewsButtonClicked : PlayerViewsIntent()
+    data class OnEditTextChange(val playerNumber: String) : PlayerViewsIntent()
+
 }
