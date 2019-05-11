@@ -6,7 +6,6 @@ import com.di.mvisample.data.mvi.PlayerViewsIntent
 import com.di.mvisample.data.usecase.GetRandomPlayerUseCase
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import java.util.concurrent.TimeUnit
@@ -14,6 +13,7 @@ import java.util.concurrent.TimeUnit
 class PlayerViewWithEditTextViewModel : ViewModel() {
     private val playerViewsIntent = BehaviorSubject.create<PlayerViewsIntent>()
     private val getRandomPlayerUseCase = GetRandomPlayerUseCase()
+    private lateinit var guessedPlayerNumber: String
 
     fun bind(intents: Observable<out PlayerViewsIntent>) {
         intents.subscribe(playerViewsIntent)
@@ -23,34 +23,20 @@ class PlayerViewWithEditTextViewModel : ViewModel() {
 
         return playerViewsIntent.publish { shared ->
             Observable.merge(shared.ofType(PlayerViewsIntent.InitViewsIntent::class.java)
-                .flatMap { Observable.just(PlayerViewState.InitviewState("Click Button To Get Player Info"))
+                .flatMap {
+                    Observable.just(PlayerViewState.InitviewState("Click Button To Get Player Info"))
                 }.cast(PlayerViewState::class.java)
                 ,
-                Observable.zip(
-                    shared.ofType(PlayerViewsIntent.OnEditTextChange::class.java)
-                        .flatMap { invalidateGuessButton(it.playerNumber) }
-                    ,
-                    shared.ofType(PlayerViewsIntent.OnGetPlayerViewsButtonClicked::class.java)
-                        .flatMap { onButtonClickIntentState() }
-                    , BiFunction { t1, t2 -> PlayerViewState.ErrorState(NullPointerException("hh")) }
-                )
+                shared.ofType(PlayerViewsIntent.OnGetPlayerViewsButtonClicked::class.java)
+                    .flatMap { onButtonClickIntentState() },
+                shared.ofType(PlayerViewsIntent.OnEditTextChange::class.java)
+                    .flatMap {
+                        invalidateGuessButton(it.playerNumber)
+                    }
             )
-        }.cast(PlayerViewState::class.java)//to convert player info to view state
+        }
 
 
-//        return playerViewsIntent.flatMap {
-//            when (it) {
-//                is PlayerViewsIntent.InitViewsIntent -> {
-//                    Observable.just(PlayerViewState.InitviewState("Click Button To Get Player Info"))
-//                }
-//                is PlayerViewsIntent.OnGetPlayerViewsButtonClicked -> {
-//                    onButtonClickIntentState()
-//                }
-//                is PlayerViewsIntent.OnEditTextChange -> {
-//                    invalidateGuessButton(it.playerNumber)
-//                }
-//            }
-//        }.distinctUntilChanged()
     }
 
     private fun onButtonClickIntentState(): Observable<PlayerViewState> {
@@ -58,7 +44,11 @@ class PlayerViewWithEditTextViewModel : ViewModel() {
             .delay(2000, TimeUnit.MILLISECONDS)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
-            .map { PlayerViewState.SuccessState(it) }
+            .map {
+                if (guessedPlayerNumber.equals(it.tShirtNumber))
+                    return@map PlayerViewState.guessedNumberCorrectState(guessedPlayerNumber, it.tShirtNumber)
+                else return@map PlayerViewState.guessedNumberWrongState(guessedPlayerNumber, it.tShirtNumber)
+            }
             .cast(PlayerViewState::class.java)//to convert player info to view state
             .startWith(PlayerViewState.LoadingState)
             .onErrorReturn { PlayerViewState.ErrorState(it) }
@@ -67,6 +57,7 @@ class PlayerViewWithEditTextViewModel : ViewModel() {
     private fun invalidateGuessButton(playerNumber: String): Observable<PlayerViewState> {
         return Observable.just(playerNumber).filter { isValidPlayerNumber(playerNumber) }
             .map { PlayerViewState.invalidateGuessButton(true) }
+            .doOnNext { guessedPlayerNumber = playerNumber }
             .cast(PlayerViewState::class.java)//to convert player info to view state
             .defaultIfEmpty(PlayerViewState.invalidateGuessButton(false))
 

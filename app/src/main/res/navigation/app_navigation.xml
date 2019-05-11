@@ -2,8 +2,7 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools" android:id="@+id/app_navigation"
-            app:startDestination="@id/playerViewWithEditText">
-    <fragment android:id="@+id/playerViewWithEditText"
-              android:name="com.di.mvisample.UI.Playerviewwithedittext.PlayerViewWithEditText"
-              android:label="PlayerViewWithEditText"/>
+            app:startDestination="@id/playerView">
+    <fragment android:id="@+id/playerView" android:name="com.di.mvisample.UI.playerview.PlayerView"
+              android:label="PlayerView"/>
 </navigation>

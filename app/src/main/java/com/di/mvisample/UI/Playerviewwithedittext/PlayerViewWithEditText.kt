@@ -1,6 +1,7 @@
 package com.di.mvisample.UI.Playerviewwithedittext
 
 import android.arch.lifecycle.ViewModelProviders
+import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
@@ -69,7 +70,30 @@ class PlayerViewWithEditText : Fragment() {
             is PlayerViewState.invalidateGuessButton -> {
                 get_player_btn.isEnabled = state.isEnable
             }
+            is PlayerViewState.guessedNumberCorrectState -> {
+                handleCorrectState(state.guessedNumber,state.generatedNumber)
+            }
+            is PlayerViewState.guessedNumberWrongState -> {
+                handleWrongState(state.guessedNumber,state.generatedNumber)
+            }
         }
+    }
+
+    private fun handleWrongState(guessedNumber: String, generatedNumber: String) {
+        progressBar1.visibility = View.GONE
+        get_player_btn.visibility = View.VISIBLE
+        guess_state.visibility = View.VISIBLE
+        guess_state.text = "Correct Guess u guessed $guessedNumber AND WRONG number is $generatedNumber \n play again"
+        guess_state.setTextColor(Color.RED)
+    }
+
+    private fun handleCorrectState(guessedNumber: String, generatedNumber: String) {
+        progressBar1.visibility = View.GONE
+        get_player_btn.visibility = View.VISIBLE
+        guess_state.visibility = View.VISIBLE
+        guess_state.text = "Correct Guess u guessed $guessedNumber AND corect number is $generatedNumber \n play again"
+        guess_state.setTextColor(Color.GREEN)
+
     }
 
     private fun handleOnStartAppState(state: PlayerViewState.InitviewState) {
